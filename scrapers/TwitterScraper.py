@@ -10,15 +10,21 @@ from scrapers.base import BaseScraper
 class TwitterScraper(BaseScraper):
     """Twitter scraper class."""
     
+    def __init__(self, *args, **kwargs):
+        name = str(self.__class__).split("'")[1].split('.')[1]
+        print('name from TwitterScraper():', name)
+        super().__init__(name, *args, **kwargs)
+    
     def parse_arguments(self, *args, **kwargs):
         super().parse_arguments(*args, **kwargs)
         parser = self.parser
-        parser.add_argument('-VOODOO', metavar='Z', type=str, dest='Z', default='TwitterScraper-Z',
+        parser.add_argument('-VOODOO', metavar='Z', type=str, dest='VOODOO', default='TwitterScraper-VOODOO',
                             help='TwitterScraper-extended base option.')
     
     @staticmethod
     def sub_parser(subparsers, *args, **kwargs):
-        new_parser = subparsers.add_parser('twitter', help='twitter help')
+        new_parser = subparsers.add_parser('twitter', help=('Invoke the twitter scraper to scrape '
+                                                            'images off of twitter.com'))
         new_parser.add_argument('--begin-date', metavar='BEGIN_DATE', type=str, dest='begin_date',
                                 default='1970-01-01 00:00:00.00',
                                 help=('TwitterScraper-only option. Download images that have their '

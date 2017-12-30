@@ -10,6 +10,11 @@ from scrapers.base import BaseScraper
 class TumblrScraper(BaseScraper):
     """Tumblr scraper class."""
     
+    def __init__(self, *args, **kwargs):
+        name = str(self.__class__).split("'")[1].split('.')[1]
+        print('name from TumblrScraper():', name)
+        super().__init__(name, *args, **kwargs)
+    
     def parse_arguments(self, *args, **kwargs):
         super().parse_arguments(*args, **kwargs)
         parser = self.parser
@@ -18,7 +23,8 @@ class TumblrScraper(BaseScraper):
     
     @staticmethod
     def sub_parser(subparsers, *args, **kwargs):
-        new_parser = subparsers.add_parser('tumblr', help='tumblr help')
+        new_parser = subparsers.add_parser('tumblr', help=('Invoke the tumblr scraper to scrape '
+                                                           'images off of tumblr.com'))
         new_parser.add_argument('--count', metavar='COUNT', type=int, dest='count',
                                 default=1000,
                                 help=('TumblrScraper-only option. Download at most COUNT images '

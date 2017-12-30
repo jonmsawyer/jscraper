@@ -3,6 +3,7 @@
 import os
 import sys
 import argparse
+from pprint import pprint
 
 class BaseScraper:
     """Base class providing basic scraper functionality."""
@@ -12,20 +13,48 @@ class BaseScraper:
     scrapers = None
     no_help = None
     
-    def __init__(self, no_help=False, *args, **kwargs):
+    def __init__(self, name, no_help=False, *args, **kwargs):
         self.scrapers = {}
-        self.no_help = True if no_help else False
+        self.name = name
+        print('self.name:', self.name)
+        self.scraper_type = name.split('Scraper')[0].lower()
+        print('self.scraper_type:', self.scraper_type)
+        self.no_help = no_help
+        print('self.no_help:', self.no_help)
         self.parse_arguments()
+        print('self.parse_args:')
+        pprint(self.parse_args)
+        print('before self.parser.parse_args()')
         self.options = self.parser.parse_args(self.parse_args).__dict__
+        print('after self.parser.parse_args()')
     
     def parse_arguments(self, *args, **kwargs):
-        self.parse_args = list(sys.argv)
+        prog = '{} {}'.format(list(sys.argv)[0], self.scraper_type)
+        prog = prog.strip()
+        print('parse_arguments(): prog:', prog)
+        
+        self.parse_args = list(sys.argv)[1:]
+        print('parse_arguments(): self.parse_args:')
+        pprint(self.parse_args)
+        
+        if self.name in ('Scraper', 'BaseScraper'):
+            self.parse_args = self.parse_args[0:1]
+        
+        if self.no_help:
+            self.parser = argparse.ArgumentParser(prog=prog,
+                                              description='Scrape a URI resource for image.')
+            print('before self.get_subparsers()')
+            self.get_subparsers()
+            print('after self.get_subparsers()')
+        
+        else:
+            self.parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS,
+                                              description='Scrape a URI resource for image.')
         if self.no_help:
             if '-h' in self.parse_args:
                 self.parse_args.remove('-h')
             if '--help' in self.parse_args:
                 self.parse_args.remove('--help')
-        self.parser = argparse.ArgumentParser(description='Scrape a URI resource for image.')
         parser = self.parser
         parser.add_argument('-a', '--user-agent', metavar='USER_AGENT', type=str,
                             dest='user_agent', default='ScraperBot',
@@ -68,12 +97,8 @@ class BaseScraper:
                                   'resource is a directory. Do not use a password for anonymous '
                                   'ftp(s) URIs. If this option is not passed in, then if -U is '
                                   'set, obtain the password from interactive input.'))
-        self.get_subparsers()
-        parser.add_argument('scraper', metavar='SCRAPER', type=str, default='generic', 
-                            choices=['generic', 'tumblr', 'twitter'],
-                            help=('Use the defined scraper. Default is "generic".'))
         
-        parser.add_argument('uris', metavar='URI', type=str, nargs='+',
+        parser.add_argument('uris', metavar='URI', type=str, nargs='*',
                             help=('The URI to scrape. Separate multiple URIs by spaces. The type '
                                   'of connection to the URI will depend on the format of the URI. '
                                   'Formats for URI: '
