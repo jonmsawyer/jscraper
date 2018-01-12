@@ -4,10 +4,10 @@ import sys
 import argparse
 from pprint import pprint
 
-from scrapers.base import BaseScraper
+from scrapers.TemplateScraper import TemplateScraper
 
 
-class TwitterScraper(BaseScraper):
+class TwitterScraper(TemplateScraper):
     """Twitter scraper class."""
     
     def __init__(self, *args, **kwargs):

@@ -4,15 +4,15 @@ import sys
 import argparse
 from pprint import pprint
 
-from scrapers.base import BaseScraper
+from scrapers.TemplateScraper import TemplateScraper
 
 
-class GenericScraper(BaseScraper):
+class GenericScraper(TemplateScraper):
     """Generic scraper class."""
     
     def __init__(self, *args, **kwargs):
         name = str(self.__class__).split("'")[1].split('.')[1]
-        print('name from GenericScraper():', name)
+        self.log('name from GenericScraper():', name)
         super().__init__(name, *args, **kwargs)
     
     def parse_arguments(self, *args, **kwargs):
@@ -32,10 +32,10 @@ class GenericScraper(BaseScraper):
         return new_parser
     
     def handle(self, *args, **kwargs):
-        print('Args:', sys.argv)
-        print('Parser:', self.parser)
-        print('Scrapers:', self.scrapers)
-        print('Parsed options:')
+        self.log('Args:', sys.argv)
+        self.log('Parser:', self.parser)
+        self.log('Scrapers:', self.scrapers)
+        self.log('Parsed options:')
         pprint(self.options)
-        print('')
-        print('This is the GenericScraper.')
+        self.log('')
+        self.log('This is the GenericScraper.')

@@ -5,12 +5,12 @@ import imp
 from pprint import pprint
 import argparse
 
-from .base import BaseScraper
+from .BaseScraper import BaseScraper
 
 SCRAPERS = ( 
     'scrapers.GenericScraper.GenericScraper',
-    'scrapers.TumblrScraper.TumblrScraper',
-    'scrapers.TwitterScraper.TwitterScraper',
+    #'scrapers.TumblrScraper.TumblrScraper',
+    #'scrapers.TwitterScraper.TwitterScraper',
 )
 
 def import_from_dotted_path(dotted_names, path=None):
@@ -27,42 +27,42 @@ def import_from_dotted_path(dotted_names, path=None):
 class Scraper(BaseScraper):
     """Scraper class."""
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, debug=False, *args, **kwargs):
         name = str(self.__class__).split('.')[1].split()[0]
-        print('name from Scraper():', name)
-        super().__init__(name, no_help=True, *args, **kwargs)
+        self.log('name from Scraper():', name)
+        super().__init__(name, no_help=True, debug=debug, *args, **kwargs)
     
     def parse_arguments2(self, *args, **kwargs):
         prog = '{} {}'.format(list(sys.argv)[0], self.scraper_type)
         prog = prog.strip()
-        print('prog:', prog)
+        self.log('prog:', prog)
         self.parse_args = ['scraper'] + list(sys.argv)[1:]
         self.parser = argparse.ArgumentParser(prog=prog,
                                               description='Scrape a URI resource for image.')
-        print('before Scraper self.get_subparsers()')
+        self.log('before Scraper self.get_subparsers()')
         self.get_subparsers()
-        print('after Scraper self.get_subparsers()')
+        self.log('after Scraper self.get_subparsers()')
 
     def get_subparsers(self, *args, **kwargs):
-        print('in get_subparsers()')
-        print('SCRAPERS:')
+        self.log('in get_subparsers()')
+        self.log('SCRAPERS:')
         pprint(SCRAPERS)
         subparsers = self.parser.add_subparsers(dest='scraper',
                                                 description=('Description text goes here...'),
                                                 help=('Invoke a particular scraper designed for '
                                                       'specific URI resources.'))
         for scraper in SCRAPERS:
-            print('Importing {}... '.format(scraper), end='')
+            self.log('Importing {}... '.format(scraper), end='')
             cls = import_from_dotted_path(scraper)
             self.scrapers.update({scraper: cls})
-            print('Done! Imported {}'.format(cls))
+            self.log('Done! Imported {}'.format(cls))
             cls.sub_parser(subparsers)
-        print('self.scrapers:')
+        self.log('self.scrapers:')
         pprint(self.scrapers)
     
     def get_scraper_class(self, *args, **kwargs):
-        print('In get_scraper()')
-        print('self.options = ')
+        self.log('In get_scraper()')
+        self.log('self.options = ')
         pprint(self.options)
         scraper = self.options.get('scraper')
         if scraper == 'generic':
@@ -75,10 +75,10 @@ class Scraper(BaseScraper):
             return self.__class__
     
     def handle(self, *args, **kwargs):
-        print('Args:', sys.argv)
-        print('Parser:', self.parser)
-        print('Scrapers:', self.scrapers)
-        print('Parsed options:')
+        self.log('Args:', sys.argv)
+        self.log('Parser:', self.parser)
+        self.log('Scrapers:', self.scrapers)
+        self.log('Parsed options:')
         pprint(self.options)
-        print('')
-        print('This is just Scraper.')
+        self.log('')
+        self.log('This is just Scraper.')

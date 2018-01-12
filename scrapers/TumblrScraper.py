@@ -4,10 +4,10 @@ import sys
 import argparse
 from pprint import pprint
 
-from scrapers.base import BaseScraper
+from scrapers.TemplateScraper import TemplateScraper
 
 
-class TumblrScraper(BaseScraper):
+class TumblrScraper(TemplateScraper):
     """Tumblr scraper class."""
     
     def __init__(self, *args, **kwargs):
