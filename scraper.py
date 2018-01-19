@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 
+'''Scraper driver that calls the apropriate scraper based on command line arguments.
+'''
+
 import sys
-from pprint import pprint
 
 from scrapers.Scraper import Scraper
+from scrapers.ScraperDriver import ScraperDriver
 
 
 if __name__ == '__main__':
-    print('{} (1) Args:'.format(__file__))
-    pprint(sys.argv)
-    scraper = Scraper(debug=True)
-    print('{} (1) In __main__: scraper = '.format(__file__), scraper)
+    driver = ScraperDriver(*sys.argv)
     
-    print('{} (2) Args:'.format(__file__))
-    pprint(sys.argv)
-    scraper = scraper.get_scraper_class()()
-    print('{} (2) In __main__: scraper = '.format(__file__), scraper)
+    driver.log('Args:', sys.argv)
     
-    print('{} (3) Args:'.format(__file__))
-    pprint(sys.argv)
+    scraper = Scraper(driver)
+    driver.log('scraper =', scraper)
+    
+    scraper_class = scraper.get_scraper_class()
+    
+    scraper = scraper_class(driver)
+    driver.log('scraper =', scraper)
+    
     scraper.handle()
-    print('{} (3) In __main__: scraper = '.format(__file__), scraper)

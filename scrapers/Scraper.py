@@ -1,16 +1,26 @@
 #!/usr/bin/env python3
 
+'''Scraper class used to initialize other scrapers.
+
+   usage:
+       >>> from scrapers.Scraper import Scraper
+       >>> from scrapers.ScraperDriver import ScraperDriver
+       >>> driver = ScraperDriver()
+       >>> scraper = Scraper(driver, *args)
+'''
+
+# pylint: disable=invalid-name
+
+import os
 import sys
 import imp
-from pprint import pprint
+from pprint import pformat
 import argparse
-
-from .BaseScraper import BaseScraper
 
 SCRAPERS = ( 
     'scrapers.GenericScraper.GenericScraper',
-    #'scrapers.TumblrScraper.TumblrScraper',
-    #'scrapers.TwitterScraper.TwitterScraper',
+    'scrapers.TumblrScraper.TumblrScraper',
+    'scrapers.TwitterScraper.TwitterScraper',
 )
 
 def import_from_dotted_path(dotted_names, path=None):
@@ -24,61 +34,144 @@ def import_from_dotted_path(dotted_names, path=None):
         return module
     return import_from_dotted_path(remaining_names, path=module.__path__)
 
-class Scraper(BaseScraper):
+class Scraper:
     """Scraper class."""
     
-    def __init__(self, debug=False, *args, **kwargs):
-        name = str(self.__class__).split('.')[1].split()[0]
-        self.log('name from Scraper():', name)
-        super().__init__(name, no_help=True, debug=debug, *args, **kwargs)
+    args = None
+    kwargs = None
+    debug = False
+    log_counter = 1
+    log_spacing = 8
+    name = 'scraper'
+    scrapers = None
+    parser = None
+    parse_args = None
+    options = None
+    stdout = sys.stdout
+    driver = None
+    log_ending = '\n'
+    prog = None
     
-    def parse_arguments2(self, *args, **kwargs):
-        prog = '{} {}'.format(list(sys.argv)[0], self.scraper_type)
-        prog = prog.strip()
-        self.log('prog:', prog)
-        self.parse_args = ['scraper'] + list(sys.argv)[1:]
-        self.parser = argparse.ArgumentParser(prog=prog,
+    def __init__(self, driver):
+        self.driver = driver
+        self.args = driver.args
+        self.kwargs = driver.kwargs
+        self.debug = driver.debug
+        self.log('self.debug:', self.debug)
+        self.log('self.name:', self.name)
+        self.scrapers = {}
+        self.parse_args, self.options = self.parse_arguments()
+        self.log('self.parse_args:', self.parse_args)
+        self.log('self.options:', self.options)
+    
+    def log(self, *args, ending='\n', flush=True):
+        '''Log the messages provided by args. If DEBUG is True, this method will print out the
+        messages provided by args onto stdout.
+        '''
+        if not self.debug:
+            return
+        if self.log_ending != '':
+            filename = os.path.basename(__file__)
+            print('{:>{spacing}} {} | ' \
+                  .format('({})'.format(self.log_counter), filename, spacing=self.log_spacing),
+                  end='', flush=flush)
+        end = ending
+        self.log_ending = ending
+        spacer = ''
+        for arg in args:
+            try:
+                if isinstance(arg, (list, tuple, dict)):
+                    printed = pformat(arg)
+                    print('{}{}'.format(spacer, printed), end='', flush=flush)
+                else:
+                    print('{}{}'.format(spacer, arg), end='', flush=flush)
+            except:
+                printed = pformat(arg)
+                print('{}{}'.format(spacer, printed), end='', flush=flush)
+            if spacer == '':
+                spacer = ' '
+        print('', end=end, flush=True)
+        if self.log_ending != '':
+            self.log_counter += 1
+    
+    def parse_arguments(self):
+        '''Parse the arguments as supplied by args. args is passed into python's
+        argparse.parse_arguments() method to set options for Scraper.
+        '''
+        self.prog = self.args[0]
+        self.log('self.parse_arguments() prog:', self.prog)
+        
+        parse_args = list(sys.argv)[1:]
+        self.log('self.parse_arguments() parse_args:', parse_args)
+        
+        if self.name == 'scraper':
+            parse_args = parse_args[0:1]
+        
+        scraper_names, scraper_names_str = self.get_scraper_names()
+        
+        self.parser = argparse.ArgumentParser(prog=self.prog,
                                               description='Scrape a URI resource for image.')
-        self.log('before Scraper self.get_subparsers()')
-        self.get_subparsers()
-        self.log('after Scraper self.get_subparsers()')
-
-    def get_subparsers(self, *args, **kwargs):
-        self.log('in get_subparsers()')
-        self.log('SCRAPERS:')
-        pprint(SCRAPERS)
-        subparsers = self.parser.add_subparsers(dest='scraper',
-                                                description=('Description text goes here...'),
-                                                help=('Invoke a particular scraper designed for '
-                                                      'specific URI resources.'))
+        self.parser.add_argument('scraper', action='store', nargs='?', default='scraper',
+                                 help=('Pass in a scraper type to initialize that scraper. Choose '
+                                       ' from one of {}.'.format(scraper_names_str)))
+        self.parser.add_argument('--debug', action='store_true',
+                                 help=('Set this flag to display debug information.'))
+        
+        options = self.parser.parse_args(parse_args).__dict__
+        if options.get('scraper') != 'scraper':
+            self.get_subparsers()
+        options = self.parser.parse_args(parse_args).__dict__
+        options['debug'] = self.debug
+        return parse_args, options
+        
+    def get_subparsers(self):
+        '''Load each scraper template class into self.scrapers dictionary, then add the subparser
+        to the class.
+        '''
+        self.log('>>>> in get_subparsers()')
+        self.log('SCRAPERS:', SCRAPERS)
+        if SCRAPERS:
+            subparsers = self.parser.add_subparsers(dest='scraper',
+                                                    description=('Description text goes here...'),
+                                                    help=('Invoke a particular scraper designed '
+                                                          'for specific URI resources.'))
+            self.log('subparsers:', subparsers)
         for scraper in SCRAPERS:
-            self.log('Importing {}... '.format(scraper), end='')
+            self.log('Importing {}... '.format(scraper), ending='')
             cls = import_from_dotted_path(scraper)
             self.scrapers.update({scraper: cls})
             self.log('Done! Imported {}'.format(cls))
             cls.sub_parser(subparsers)
-        self.log('self.scrapers:')
-        pprint(self.scrapers)
+        self.log('self.scrapers:', self.scrapers)
+        self.log('>>>> end get_subparsers()')
     
-    def get_scraper_class(self, *args, **kwargs):
-        self.log('In get_scraper()')
-        self.log('self.options = ')
-        pprint(self.options)
+    def get_scraper_class(self):
+        '''Get the class of one of the scrapers as defined by the 'scraper' option in SCRAPERS.
+        '''
+        self.log('<<<< In get_scraper_class()')
+        self.log('self.options = ', self.options)
         scraper = self.options.get('scraper')
         if scraper == 'generic':
-            return self.scrapers.get('scrapers.GenericScraper.GenericScraper')
+            scraper_class = self.scrapers.get('scrapers.GenericScraper.GenericScraper')
         elif scraper == 'tumblr':
-            return self.scrapers.get('scrapers.TumblrScraper.TumblrScraper')
+            scraper_class = self.scrapers.get('scrapers.TumblrScraper.TumblrScraper')
         elif scraper == 'twitter':
-            return self.scrapers.get('scrapers.TwitterScraper.TwitterScraper')
+            scraper_class = self.scrapers.get('scrapers.TwitterScraper.TwitterScraper')
         else:
-            return self.__class__
+            scraper_class = self.__class__
+        scraper_class.prog = self.args[0] + ' ' + scraper
+        self.log('<<<< end get_scraper_class()')
+        return scraper_class
     
-    def handle(self, *args, **kwargs):
-        self.log('Args:', sys.argv)
-        self.log('Parser:', self.parser)
-        self.log('Scrapers:', self.scrapers)
-        self.log('Parsed options:')
-        pprint(self.options)
-        self.log('')
-        self.log('This is just Scraper.')
+    def get_scraper_names(self):
+        names = []
+        names_str = ' [ {} ]'
+        for scraper in SCRAPERS:
+            cls = import_from_dotted_path(scraper)
+            names.append(cls.name)
+        names_str = names_str.format(' | '.join(names))
+        return names, names_str
+    
+    def handle(self):
+        print(self.parser.format_help())
+        sys.exit(1)

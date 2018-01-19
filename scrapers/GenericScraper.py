@@ -1,41 +1,60 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import argparse
-from pprint import pprint
+from pprint import pformat
 
-from scrapers.TemplateScraper import TemplateScraper
-
+try:
+    from scrapers.TemplateScraper import TemplateScraper
+except ImportError:
+    from TemplateScraper import TemplateScraper
+try:
+    from scrapers.ScraperDriver import ScraperDriver
+except ImportError:
+    from ScraperDriver import ScraperDriver
 
 class GenericScraper(TemplateScraper):
     """Generic scraper class."""
     
-    def __init__(self, *args, **kwargs):
-        name = str(self.__class__).split("'")[1].split('.')[1]
-        self.log('name from GenericScraper():', name)
-        super().__init__(name, *args, **kwargs)
+    name = 'generic'
+    filename = os.path.basename(__file__)
+    
+    def __init__(self, driver, *args, **kwargs):
+        super().__init__(driver, self.name, *args, **kwargs)
+        self.log('name from GenericScraper():', self.name)
     
     def parse_arguments(self, *args, **kwargs):
+        self.parser = argparse.ArgumentParser(prog=self.prog,
+                                              description='Scrape a URI resource for images.')
+        self.parser.add_argument('-Z', metavar='Z', type=str, dest='Z', default='GenericScraper-Z',
+                                 help=('GenericScraper-extended base option.'))
+        self.parser.add_argument('-V', metavar='V', type=str, dest='V', default='GenericScraper-V',
+                                 help='GenericScraper-only option')
         super().parse_arguments(*args, **kwargs)
-        parser = self.parser
-        parser.add_argument('-Z', metavar='Z', type=str, dest='Z', default='GenericScraper-Z',
-                            help='GenericScraper-extended base option.')
     
     @staticmethod
     def sub_parser(subparsers, *args, **kwargs):
-        new_parser = subparsers.add_parser('generic', help=('Invoke the generic scraper to scrape '
-                                                            'images off of any URI resource. This '
-                                                            'is a general scraper and may not '
-                                                            'grab every image.'))
-        new_parser.add_argument('-V', metavar='V', type=str, dest='V', default='GenericScraper-V',
-                               help='GenericScraper-only option')
-        return new_parser
+        parser = subparsers.add_parser('generic',
+                                       help=('Invoke the generic scraper to scrape images off '
+                                             'of any URI resource. This is a general scraper '
+                                             'and may not grab every image.'))
+        return parser
     
     def handle(self, *args, **kwargs):
-        self.log('Args:', sys.argv)
-        self.log('Parser:', self.parser)
-        self.log('Scrapers:', self.scrapers)
-        self.log('Parsed options:')
-        pprint(self.options)
-        self.log('')
-        self.log('This is the GenericScraper.')
+        self.write('Args:', self.args)
+        self.write('Parser:', self.parser)
+        self.write('Parsed options:', self.options)
+        self.write('')
+        self.write('This is the GenericScraper.')
+
+
+if __name__ == '__main__':
+    driver = ScraperDriver(*sys.argv)
+    
+    driver.log('Args:', sys.argv)
+    
+    scraper = GenericScraper(driver)
+    driver.log('scraper =', scraper)
+    
+    scraper.handle()
