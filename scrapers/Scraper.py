@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# pylint: disable=invalid-name
 
 '''Scraper class used to initialize other scrapers.
 
