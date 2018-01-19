@@ -10,7 +10,7 @@ Clone the repository:
 
 Install and activate a virtualenv for this project:
 
-`pip install virtualenv virtualenv-wrapper`
+`pip install virtualenv virtualenvwrapper`
 
 `mkvirtualenv jscraper`
 
