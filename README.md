@@ -11,6 +11,7 @@ Clone the repository:
 Install and activate a virtualenv for this project:
 
 `pip install virtualenv virtualenv-wrapper`
+
 `mkvirtualenv jscraper`
 
 Install the requirements for this project:
@@ -34,6 +35,9 @@ In this project there are 3 supported scrapers, `generic`, `tumblr`, and
 
 When invoking the scrapers, note the inheritance and overriding of command line 
 arguments.
+
+**Please Note: the generic, tumblr, and twitter scrapers are not actually implemented.
+This project is for demonstration purposes only.**
 
 ## Invoke the generic scraper
 
