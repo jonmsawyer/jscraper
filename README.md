@@ -22,7 +22,7 @@ Hack the code and lint the project (on Windows):
 
 `lint` (must have installed requirements)
 
-TODO - Test the code:
+**TODO -** Test the code:
 
 `test`
 
