@@ -10,6 +10,9 @@ from scrapers.ScraperDriver import ScraperDriver
 
 
 if __name__ == '__main__':
+    # If scraper.py was invoked via the command line, initialize a driver and obtain the scraper
+    # associated with the scraper command line option, then execute the main handle() method.
+    
     driver = ScraperDriver(*sys.argv)
     
     driver.log('Args:', sys.argv)

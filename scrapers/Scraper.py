@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=invalid-name
 
 '''Scraper class used to initialize other scrapers.
 
@@ -9,13 +10,12 @@
        >>> scraper = Scraper(driver, *args)
 '''
 
-# pylint: disable=invalid-name
-
 import os
 import sys
 import imp
 from pprint import pformat
 import argparse
+
 
 SCRAPERS = ( 
     'scrapers.GenericScraper.GenericScraper',
@@ -33,6 +33,20 @@ def import_from_dotted_path(dotted_names, path=None):
     if '.' not in remaining_names:
         return module
     return import_from_dotted_path(remaining_names, path=module.__path__)
+
+def get_scraper_names():
+    '''Return a 2-tuple of scraper names as a list and scraper names as a string. Uses SCRAPERS
+    attribute of this module to walk through. String is formatted like "name1 | name2 | name3".
+    The names as a string is used in command line help.
+    '''
+    names = []
+    names_str = ' [ {} ]'
+    for scraper in SCRAPERS:
+        cls = import_from_dotted_path(scraper)
+        names.append(cls.name)
+    names_str = names_str.format(' | '.join(names))
+    return names, names_str
+
 
 class Scraper:
     """Scraper class."""
@@ -107,7 +121,8 @@ class Scraper:
         if self.name == 'scraper':
             parse_args = parse_args[0:1]
         
-        scraper_names, scraper_names_str = self.get_scraper_names()
+        scraper_names, scraper_names_str = get_scraper_names()
+        del scraper_names
         
         self.parser = argparse.ArgumentParser(prog=self.prog,
                                               description='Scrape a URI resource for image.')
@@ -163,15 +178,11 @@ class Scraper:
         self.log('<<<< end get_scraper_class()')
         return scraper_class
     
-    def get_scraper_names(self):
-        names = []
-        names_str = ' [ {} ]'
-        for scraper in SCRAPERS:
-            cls = import_from_dotted_path(scraper)
-            names.append(cls.name)
-        names_str = names_str.format(' | '.join(names))
-        return names, names_str
-    
     def handle(self):
+        '''After all command line options have been parsed, execute the main method (handle())
+        of the object. Prints out command line help then exits with an error code because this
+        method, ultimately, shouldn't run, but is here to remain consistent with the other
+        `scrapers.*Scraper` classes.
+        '''
         print(self.parser.format_help())
         sys.exit(1)
