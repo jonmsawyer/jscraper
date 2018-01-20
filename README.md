@@ -1,18 +1,18 @@
 # scraper
 
-Demonstrating command line arguments for new scraper application.
+Python application for scraping image resources from a URI (parse the URI resource and download the images).
 
 ## Getting Started
 
 Clone the repository:
 
-`git clone https://github.com/jonmsawyer/jscraper`
+`git clone https://github.com/jonmsawyer/scraper`
 
 Install and activate a virtualenv for this project:
 
 `pip install virtualenv virtualenvwrapper`
 
-`mkvirtualenv jscraper`
+`mkvirtualenv scraper`
 
 Install the requirements for this project:
 
@@ -22,7 +22,7 @@ Hack the code and lint the project (on Windows):
 
 `lint` (must have installed requirements)
 
-**TODO -** Test the code:
+**TODO -** Test the application:
 
 `test`
 
@@ -30,14 +30,17 @@ Hack the code and lint the project (on Windows):
 
 `python scraper.py --help`
 
-In this project there are 3 supported scrapers, `generic`, `tumblr`, and
-`twitter`.
+In this project there are 3 supported scrapers:
+
+1. `generic` - scrape an arbitrary URI resource for images
+1. `tumblr` - scrape a tumblr blog for images
+1. `twitter` - scrape a twitter profile for images
 
 When invoking the scrapers, note the inheritance and overriding of command line 
 arguments.
 
 **Please Note: the generic, tumblr, and twitter scrapers are not actually implemented.
-This project is for demonstration purposes only.**
+This is still a TODO item.**
 
 ## Invoke the generic scraper
 
@@ -57,7 +60,7 @@ Scrapes all images from `http://example.com/`.
 
 `python scraper.py tumblr cars`
 
-Scrapes all images from the blog `cars.tumblr.com`.
+Scrapes all images from the tumblr blog `cars.tumblr.com`.
 
 ## Invoke the twitter scraper
 
