@@ -41,9 +41,9 @@ class TwitterScraper(TemplateScraper):
                                  help=('TwitterScraper-only option. Download images that have '
                                        'their modification date to be greater than BEGIN_DATE'))
         self.parser.add_argument('--end-date', metavar='END_DATE', type=str, dest='end_date',
-                                default='2099-12-12 23:59:59.999',
-                                help=('TwitterScraper-only option. Download images that have '
-                                      'their modification date to be less than END_DATE'))
+                                 default='2099-12-12 23:59:59.999',
+                                 help=('TwitterScraper-only option. Download images that have '
+                                       'their modification date to be less than END_DATE'))
         super().parse_arguments()
     
     @staticmethod

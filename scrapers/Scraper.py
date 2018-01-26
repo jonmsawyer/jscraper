@@ -15,6 +15,11 @@ import imp
 from pprint import pformat
 import argparse
 
+try:
+    from scrapers import SALC
+except ImportError:
+    from . import SALC
+
 
 SCRAPERS = ( 
     'scrapers.GenericScraper.GenericScraper',
@@ -124,7 +129,27 @@ class Scraper:
         del scraper_names
         
         self.parser = argparse.ArgumentParser(prog=self.prog,
-                                              description='Scrape a URI resource for image.')
+                                              formatter_class=argparse.RawTextHelpFormatter,
+                                              description='''\
+Scrape one or more URI resources for images.''',
+                                              epilog='''\
+examples:
+  $ python %(prog)s generic [OPTIONS] URI [URI ...]
+                        Run the generic scraper. Run with --help option
+                        for details.
+
+  $ python %(prog)s twitter [OPTIONS] URI [URI ...]
+                        Run the twitter scraper. Run with --help option
+                        for details.
+
+  $ python %(prog)s tumblr [OPTIONS] URI [URI ...]
+                        Run the tumblr scraper. Run with --help option
+                        for details.
+
+  $ python %(prog)s --help
+                        Show this help message and exit
+
+{SALC}'''.format(SALC=SALC))
         self.parser.add_argument('scraper', action='store', nargs='?', default='scraper',
                                  help=('Pass in a scraper type to initialize that scraper. Choose '
                                        ' from one of {}.'.format(scraper_names_str)))
